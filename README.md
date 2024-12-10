@@ -58,7 +58,7 @@ local_addr = "127.0.0.1:22" # The address of the service that needs to be forwar
 ```
 
 systemd service template
-```toml
+```
 #/etc/systemd/system/rathole.service 
 [Unit]
 Description=rathole tunnel service
