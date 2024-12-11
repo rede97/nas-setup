@@ -1,5 +1,5 @@
 # pve-setup
-PVE安装之后，用于部署和服务的基础配置脚本和说明
+PVE安装之后，用于部署和服务的基础配置脚本、说明和注意事项
 
 ## Primary Config & Mirrors 
 
@@ -65,7 +65,7 @@ local_addr = "127.0.0.1:22" # The address of the service that needs to be forwar
 ```
 
 systemd service template
-```
+```sh
 #/etc/systemd/system/rathole.service 
 [Unit]
 Description=rathole tunnel service
@@ -84,13 +84,13 @@ ExecStart=/usr/bin/rathole /etc/config.toml
 WantedBy=multi-user.target
 ```
 
-## Filesystem Maintenance
+## Filesystem
 
 文件系统维护的基本命令
 
 ### BTRFS
 
-* btrfs的subvolume名称直接通过mv即可修改
+* btrfs的`subvolume`名称直接通过`mv /tmp/btrfs-full/<vol_name> /tmp/btrfs-full/<new_vol_name>`即可修改 
 * btrfs的挂载参数不能指定`uid`和`gid`，直接使用`chown`命令修改`/tmp/btrfs-full/<vol_name>`即可
 
 #### Example
@@ -133,10 +133,6 @@ zpool status # 显示zpool存储池的状态
 #### 参考文档
 * [Oracle Create&Destory ZFS pool](https://docs.oracle.com/cd/E26926_01/html/E25826/zfsover-1.html)
 * [Open ZFS](https://openzfs.github.io/openzfs-docs/Getting%20Started/index.html)
-
-### LVM
-
-    TODO
 
 
 ## [Disk-Mount](Mount-Disk.md)
