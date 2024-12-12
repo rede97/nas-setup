@@ -24,7 +24,7 @@ grep " install " /var/log/dpkg.log
 
 ### 参考文档
 
-* [PVE Bootloader & Grub Recover](https://pve.proxmox.com/wiki/Recover_From_Grub_Failure)*
+* [PVE Bootloader & Grub Recover](https://pve.proxmox.com/wiki/Recover_From_Grub_Failure)
 * [apt history](https://cn.linux-console.net/?p=15827)
 
 ## Software
