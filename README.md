@@ -37,7 +37,7 @@ apt install git htop iotop tree zip unzip uuid-runtime debsums
 
 ### Thrid-party software
 * [fd-find](https://github.com/sharkdp/fd/releases/latest) 文件快速查找
-* [ripgrep](https://github.com/BurntSushi/ripgrep/releases/latest) 文本快速搜多
+* [ripgrep](https://github.com/BurntSushi/ripgrep/releases/latest) 文本快速搜索
 * [dust](https://github.com/bootandy/dust/releases/latest) 目录空间占用统计
 * [bandwhich](https://github.com/imsnif/bandwhich/releases/latest) 带宽监控
 * [rathole](https://github.com/rapiz1/rathole/releases/latest) 网络服务打洞穿透
