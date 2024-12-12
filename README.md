@@ -200,7 +200,7 @@ systemctl enable devmon@jack.service
 
 #### 避坑
 * udevil在挂载exfat磁盘的时候会导致挂载失败，原因是参数加入了`nonempty`，`mount`现在并不支持
-* 如果容器重启，devmon.service任务必须重启或者usb设备重新拔插出发重新挂载
+* 如果容器重启，devmon.service任务必须重启或者usb设备重新拔插触发重新挂载
 
 ### 参考文档
 * [automount-pve](https://github.com/theyo-tester/automount-pve) 该项目的自动挂载脚本与zfs自动挂载纯在冲突，谨慎使用
