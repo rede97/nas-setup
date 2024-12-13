@@ -214,6 +214,7 @@ systemctl enable devmon@jack.service
 
 
 ## 其他参考项目
+* [Mount Volumes into Proxmox VMs with Virtio-fs](https://gist.github.com/Drallas/7e4a6f6f36610eeb0bbb5d011c8ca0be)
 * [aquar-build-helper](https://github.com/firemakergk/aquar-build-helper)
 
 
