@@ -24,6 +24,11 @@ incus用于取代pve的容器管理工具，Debian 12软件源需要打开`backp
 * [incus](https://linuxcontainers.org/incus/)
 * [lxc-mirror](https://mirrors.tuna.tsinghua.edu.cn/help/lxc-images/)
 
+### 无脑nas部署 CasaOS
+基于docker，目前功能尚不成熟
+* [CasaOS](https://casaos.io/)
+
+
 ## 部署Samba
 
 Samba 建议本地部署最为方便，docker中的turnkeylinux已经停止更新，不需要向虚拟机使用virtio-fs映射目录或者docker映射目录，同时权限管理也最为简单。文件传输效率更高，开销更低。
