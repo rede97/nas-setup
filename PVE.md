@@ -1,5 +1,5 @@
-# pve-setup
-PVE安装之后，用于部署和服务的基础配置脚本、说明和注意事项
+# pve setup
+PVE安装之后，用于部署NAS等服务的基础配置脚本、说明和注意事项
 
 ## Primary Config & Mirrors 
 
@@ -71,7 +71,7 @@ local_addr = "127.0.0.1:22" # The address of the service that needs to be forwar
 ```
 
 systemd service template
-```sh
+```ini
 #/etc/systemd/system/rathole.service 
 [Unit]
 Description=rathole tunnel service
@@ -166,7 +166,7 @@ zpool status # 显示zpool存储池的状态
 * 保证systemd.mount的文件名与`Where`挂载目录保持一致，`\`使用`-`替换
 
 ### Example
-```sh
+```ini
 #/etc/systemd/system/srv-storage-data.mount
 [Unit]
 Description=Mount data disk
