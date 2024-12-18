@@ -1,34 +1,44 @@
 #!/usr/bin/python3
+import sys
 import argparse
 import tomllib
 from pathlib import Path
-from mount_service import update_config
+from sd_common import *
+from mount_service import MountService
+import logging
 
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(filename)s:%(lineno)d] %(levelname)s - %(message)s',
+    stream=sys.stderr
+)
+logger = logging.getLogger(__name__)
 
-DEFAULT_CONFIG_PATH = "/etc/store_deploy/conf.toml"
 
 parser = argparse.ArgumentParser(description="Storage deployment cli tools")
-# positional argument
-parser.add_argument('-c', "--config", type=Path, help=f"config file path, defaults to {DEFAULT_CONFIG_PATH}", default=DEFAULT_CONFIG_PATH)
+parser.add_argument('-c', "--config", type=Path,
+                    help=f"config file path, defaults to {DEFAULT_CONFIG_PATH}", default=DEFAULT_CONFIG_PATH)
 args = parser.parse_args()
-# print(args)
 
-def load_config(cfg: Path) -> dict:
-    if cfg.exists():
-        with open(cfg, "rb") as f:
-            toml_cfg = tomllib.load(f)
-            return toml_cfg
+
+def main():
+    config_path: Path = args.config
+    config_target_dir = config_path.parent
+    if config_path.exists():
+        with open(config_path, "rb") as f:
+            config = tomllib.load(f)
     else:
-        cfg.parent.mkdir(parents=True, exist_ok=True)
-        cfg.touch()
-        return {}
+        config_target_dir.mkdir(parents=True, exist_ok=True)
+        config_path.touch()
+        config = {}
+    logger.info(f"config file: {config_path}")
 
-def pre_proc_config(cfg: dict) -> dict:
-    cfg["mounts"] = cfg["mounts"] or []
-    cfg["samba"] = cfg["samba"] or {}
-    return cfg
+    systemctl("daemon-reload")
+    mount_service = MountService(config, config_target_dir)
+    mount_service.update()
+    mount_service.apply()
 
 
-cfg = load_config(args.config)
+if __name__ == '__main__':
+    main()
 
-update_config(cfg["mounts"], Path("."))

@@ -1,9 +1,15 @@
-import os
+import logging
 import subprocess
+import shutil
+from io import StringIO
 from pathlib import Path
 from string import Template
 from dataclasses import dataclass
 from typing import Optional, Union
+from sd_common import *
+
+logger = logging.getLogger(__name__)
+SYSTEMD_SERVICE_DIR = Path("/etc/systemd/system/")
 
 
 @dataclass
@@ -13,6 +19,7 @@ class MountConfig:
     type: Optional[str] = None
     options: Optional[str] = None
     target: Optional[str] = None
+    desc: Optional[str] = None
     disable: bool = False
 
     @staticmethod
@@ -28,7 +35,7 @@ class MountConfig:
     def __lookup_fstype_by_dev(dev: Path) -> Optional[str]:
         output = subprocess.run(
             f"blkid -s TYPE --output value {dev.absolute()}", shell=True, stdout=subprocess.PIPE).stdout
-        fstype_str = output.decode(encoding="utf-8")
+        fstype_str = output.decode(encoding="utf-8").strip()
         if len(fstype_str) != 0:
             return fstype_str
         return None
@@ -58,47 +65,115 @@ class MountConfig:
                     return fs_type
                 raise fs_type
             case "" | "auto":
-                if isinstance(fs_type, str):
-                    return self.type
-                print(f"Warning, fstype maybe invalid. {fs_type}")
+                if isinstance(fs_type, Exception):
+                    logger.warning(
+                        f"fstype maybe mismatch. {fs_type}")
+                return "auto"
             case _:
                 if self.type != fs_type and isinstance(fs_type, ValueError):
                     raise fs_type
                 return self.type
-        return self.type
+
+    def get_what(self) -> str:
+        if len(self.what) == 0:
+            raise ValueError("Empty `what` field for mount device")
+        return self.what
 
     def get_where(self) -> str:
-        if self.where is None or len(self.where) == 0:
-            raise ValueError("Invalid `where` for mount point")
+        if len(self.where) == 0:
+            raise ValueError("Empty `where` field for mount point")
         return str(Path(self.where).absolute())
 
     def get_target(self) -> str:
-        if self.target is None:
-            return ""
+        if self.target is None or len(self.target) == 0:
+            return "basic.target"
         elif not self.target.endswith(".target"):
             return f"{self.target}.target"
         else:
             return self.target
 
+    def gen_service(self) -> str:
+        w = StringIO()
+        w.write("[Unit]\n")
+        if self.desc:
+            w.write(f"Description={self.desc}; {DECLARE}\n")
+        else:
+            w.write(f"Description={DECLARE}\n")
+        w.write("\n[Mount]\n")
+        w.write(f"What={self.get_what()}\n")
+        w.write(f"Where={self.get_where()}\n")
+        w.write(f"Type={self.get_type()}\n")
+        if self.options:
+            w.write(f"Options={self.options}\n")
 
-def __service_dir_rename(dir_name: str) -> str:
-    return dir_name.replace(" ", "\\x20").replace("-", "\\x2d")
+        wanted_by = self.get_target()
+        w.write("\n[Install]\n")
+        if wanted_by:
+            w.write(f"WantedBy={wanted_by}\n")
+
+        return w.getvalue()
 
 
-def gen_mount_service(cfg: MountConfig, target_dir: Path) -> Optional[str]:
-    if cfg.disable:
-        return None
-    cfg.get_type()
-    where_parents = Path(cfg.where).absolute().parts[1:]
-    where_parents = list(map(__service_dir_rename, where_parents))
-    
-    
-    return "-".join(where_parents) + ".mount"
+class MountService(StorageDeployService):
+    @staticmethod
+    def __service_dir_rename(dir_name: str) -> str:
+        return dir_name.replace(" ", "\\x20").replace("-", "\\x2d")
 
+    def __clean_mount_service(self):
+        for mount_service in SYSTEMD_SERVICE_DIR.glob("*.mount"):
+            if mount_service.is_symlink():
+                mount_service_path = mount_service.resolve()
+                if is_subdirectory(self.config_target_dir, mount_service_path):
+                    logger.info(f"service stop and disable: {mount_service}")
+                    systemctl("stop", mount_service.name)
+                    systemctl("disable", mount_service.name)
+                    logger.info(f"unlink: {mount_service_path}")
+                    if mount_service.exists():
+                        # systemctl disable will remove service automatically
+                        mount_service.unlink()
 
-def update_config(mounts: list[dict], target_path: Path, start=False, enable=False, enable_param: Optional[str] = None):
-    for mount_cfg in mounts:
-        print(mount_cfg)
-        cfg = MountConfig(**mount_cfg)
-        service_name = gen_mount_service(cfg, target_path)
-        print(service_name)
+    def __link_mount_service(self):
+        for mount_service in self.service_target_dir.glob("*.mount"):
+            target_service = SYSTEMD_SERVICE_DIR.joinpath(mount_service.name)
+            if target_service.exists():
+                logger.info(f"backup: {target_service}")
+                shutil.move(
+                    target_service, self.service_backup_dir.joinpath(target_service.name))
+            logger.info(f"link: {target_service} -> {mount_service}")
+            target_service.symlink_to(mount_service)
+            logger.info(f"service start and enable: {target_service}")
+            systemctl("start", target_service.name)
+            systemctl("enable", target_service.name)
+
+    def __init__(self, cfg: dict, config_target_dir: Path) -> None:
+        super().__init__(cfg, config_target_dir)
+        self.service_target_dir = self.config_target_dir / "mount_service"
+        self.service_backup_dir = self.config_target_dir / "mount_backup"
+        self.service_backup_dir.mkdir(exist_ok=True)
+
+    def update(self):
+        self.__clean_mount_service()
+        if self.service_target_dir.exists():
+            shutil.rmtree(self.service_target_dir)
+        self.service_target_dir.mkdir()
+        mounts_cfg = self.cfg.get("mounts", [])
+        # print(self.cfg, mounts_cfg)
+        for mount_cfg in mounts_cfg:
+            cfg = MountConfig(**mount_cfg)
+            if cfg.disable:
+                continue
+            where_parents = Path(cfg.where).absolute().parts[1:]
+            where_parents = list(
+                map(MountService.__service_dir_rename, where_parents))
+            service_name = "-".join(where_parents) + ".mount"
+            mount_service_path = self.service_target_dir / service_name
+            with open(mount_service_path, mode="wt") as f:
+                logger.info(f"update: {mount_service_path}")
+                f.write(cfg.gen_service())
+
+    def apply(self, **kwargs):
+        self.__link_mount_service()
+        return super().apply()
+
+    def remove(self):
+        return super().remove()
