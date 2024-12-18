@@ -33,5 +33,8 @@ class StorageDeployService:
     def apply(self, **kwargs):
         pass
 
+    def stop(self):
+        pass
+
     def remove(self):
         pass

@@ -6,7 +6,7 @@ from pathlib import Path
 from string import Template
 from dataclasses import dataclass
 from typing import Optional, Union
-from sd_common import *
+from .sd_common import *
 
 logger = logging.getLogger(__name__)
 SYSTEMD_SERVICE_DIR = Path("/etc/systemd/system/")
@@ -119,18 +119,23 @@ class MountService(StorageDeployService):
     def __service_dir_rename(dir_name: str) -> str:
         return dir_name.replace(" ", "\\x20").replace("-", "\\x2d")
 
-    def __clean_mount_service(self):
+    def __clean_mount_service(self, only_stop=False):
         for mount_service in SYSTEMD_SERVICE_DIR.glob("*.mount"):
             if mount_service.is_symlink():
                 mount_service_path = mount_service.resolve()
                 if is_subdirectory(self.config_target_dir, mount_service_path):
-                    logger.info(f"service stop and disable: {mount_service}")
-                    systemctl("stop", mount_service.name)
-                    systemctl("disable", mount_service.name)
-                    logger.info(f"unlink: {mount_service_path}")
-                    if mount_service.exists():
-                        # systemctl disable will remove service automatically
-                        mount_service.unlink()
+                    if only_stop:
+                        logger.info(f"service stop: {mount_service}")
+                        systemctl("stop", mount_service.name)
+                    else:
+                        logger.info(
+                            f"service stop and disable: {mount_service}")
+                        systemctl("stop", mount_service.name)
+                        systemctl("disable", mount_service.name)
+                        logger.info(f"unlink: {mount_service_path}")
+                        if mount_service.exists():
+                            # systemctl disable will remove service automatically
+                            mount_service.unlink()
 
     def __link_mount_service(self):
         for mount_service in self.service_target_dir.glob("*.mount"):
@@ -139,7 +144,7 @@ class MountService(StorageDeployService):
                 logger.info(f"backup: {target_service}")
                 shutil.move(
                     target_service, self.service_backup_dir.joinpath(target_service.name))
-            logger.info(f"link: {target_service} -> {mount_service}")
+            logger.info(f"link: {target_service} → {mount_service}")
             target_service.symlink_to(mount_service)
             logger.info(f"service start and enable: {target_service}")
             systemctl("start", target_service.name)
@@ -174,6 +179,10 @@ class MountService(StorageDeployService):
     def apply(self, **kwargs):
         self.__link_mount_service()
         return super().apply()
+
+    def stop(self):
+        self.__clean_mount_service(only_stop=True)
+        return super().stop()
 
     def remove(self):
         return super().remove()
