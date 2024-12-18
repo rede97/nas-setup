@@ -4,5 +4,6 @@
 disable = false
 what = "UUID=2ebdaf8a-2dee-4812-9c86-525d9b742ff2"
 where = "/srv/storage/data"
-options = "rw,relatime,compress=zstd,subvol=data"
+options = "nofail,rw,relatime,compress=zstd,subvol=data"
+target = "local-fs"
 

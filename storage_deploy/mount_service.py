@@ -86,7 +86,7 @@ class MountConfig:
 
     def get_target(self) -> str:
         if self.target is None or len(self.target) == 0:
-            return "basic.target"
+            return "multi-user.target"
         elif not self.target.endswith(".target"):
             return f"{self.target}.target"
         else:
@@ -141,6 +141,7 @@ class MountService(StorageDeployService):
         for mount_service in self.service_target_dir.glob("*.mount"):
             target_service = SYSTEMD_SERVICE_DIR.joinpath(mount_service.name)
             if target_service.exists():
+                systemctl("stop", target_service.name)
                 logger.info(f"backup: {target_service}")
                 shutil.move(
                     target_service, self.service_backup_dir.joinpath(target_service.name))
