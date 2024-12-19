@@ -38,9 +38,58 @@ target = "multi-user"
 
 
 [nfs_policy.local_lan_rw]
-hostname = "172.16.0.0/24"
+access = "172.16.0.0/24"
 options = "rw,async"
 
 [[nfs]]
 exports = "/srv/storage"
 policies = ["$local_lan_rw"]
+
+
+[samba_policy]
+allow_users = '''
+valid users = @users
+'''
+
+enable_recycle = '''
+recycle:repository = .recycle/%U
+recycle:keeptree = yes
+recycle:versions = yes
+recycle:touch = yes
+recycle:maxsixe = 0
+'''
+
+share_data = ["$allow_users", '''
+read only = no
+inherit owner = no
+force group = users
+vfs object = recycle
+''', "$enable_recycle"]
+
+[samba.global]
+config = '''
+
+'''
+
+[samba.home]
+config = '''
+comment = Home Directories
+available = yes
+browseable = no
+read only = no
+create mask = 0700
+directory mask = 0700
+valid users = %S
+'''
+
+[samba.share]
+config = "$share_data"
+
+[webdav]
+samba = ""
+
+[udevil]
+user = ""
+
+[wsdd]
+disable = false
