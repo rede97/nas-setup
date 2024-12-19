@@ -18,8 +18,14 @@ cat ~/.ssh/id_rsa.pub | ssh username@remote_host "mkdir -p ~/.ssh && touch ~/.ss
 ```
 
 ### apt 安装历史记录
-```
+```sh
 grep " install " /var/log/dpkg.log
+```
+
+### 检查文件目录占用
+```sh
+lsof /mnt
+fuser /mnt
 ```
 
 ### 参考文档
@@ -31,7 +37,7 @@ grep " install " /var/log/dpkg.log
 
 ### Useful tools
 
-```
+```sh
 apt install git htop iotop tree zip unzip uuid-runtime debsums
 ```
 
