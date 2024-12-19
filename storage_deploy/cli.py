@@ -40,6 +40,7 @@ def main():
     mount_service = MountService(config, config_target_dir)
     mount_service.update()
     mount_service.apply()
+    # mount_service.remove()
 
 
 # sudo python3 -m storage_deploy.cli -c conf.toml

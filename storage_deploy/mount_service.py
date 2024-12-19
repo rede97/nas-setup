@@ -141,7 +141,9 @@ class MountService(StorageDeployService):
         for mount_service in self.service_target_dir.glob("*.mount"):
             target_service = SYSTEMD_SERVICE_DIR.joinpath(mount_service.name)
             if target_service.exists():
+                logger.info(f"service stop and disable: {target_service}")
                 systemctl("stop", target_service.name)
+                systemctl("disable", target_service.name)
                 logger.info(f"backup: {target_service}")
                 shutil.move(
                     target_service, self.service_backup_dir.joinpath(target_service.name))
@@ -186,4 +188,13 @@ class MountService(StorageDeployService):
         return super().stop()
 
     def remove(self):
+        self.__clean_mount_service()
+        for backup_service in self.service_backup_dir.glob("*.mount"):
+            target_service = SYSTEMD_SERVICE_DIR.joinpath(backup_service.name)
+            if target_service.exists():
+                logger.warning(
+                    f"recovery service already exists: {target_service}")
+            else:
+                logger.info(f"recovery: {target_service}")
+                shutil.move(backup_service, target_service)
         return super().remove()

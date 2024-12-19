@@ -8,7 +8,11 @@ debian的基础软件包比较简单，需要较多的配置，openssh server也
 
 ```sh
 # base tools
-apt install ssh pipx wget axel htop iotop git tree attr net-tools util-linux udevil samba wsdd cifs-utils smbclient zip unzip uuid-runtime debsums
+apt install ssh pipx wget axel htop iotop git tree attr net-tools udevil zip unzip uuid-runtime debsums psmisc 
+
+apt install samba smbclient cifs-utils wsdd
+# nfs server
+apt install nfs-kernel-server
 
 # Nvidia driver base
 apt install build-essential pkg-config libglvnd-dev
