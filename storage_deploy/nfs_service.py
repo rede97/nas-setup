@@ -1,8 +1,9 @@
-from .sd_common import *
+import shutil
+import logging
 from dataclasses import dataclass
 from io import StringIO
-import logging
-import shutil
+from typing import Any
+from .sd_common import *
 
 logger = logging.getLogger(__name__)
 NFS_CONFIG_PATH = Path("/etc/exports")
@@ -33,17 +34,20 @@ class NfsExportConfig:
 
 class NfsService(StorageDeployService):
 
-    def __parse_nfs_config(self, nfs_export: dict) -> NfsExportConfig:
+    def __parse_nfs_config(self, nfs_export: dict[str, Any]) -> NfsExportConfig:
         policies: list[NfsPoicy] = []
         nfs_export_policies = nfs_export["policies"]
-        if not isinstance(nfs_export_policies, list):
+        if isinstance(nfs_export_policies, str):
             nfs_export_policies = (nfs_export_policies,)
 
         for policy in nfs_export_policies:
             if isinstance(policy, str):
-                policy_name = policy.strip("$")
+                policy_ref_name = policy.strip("$")
+                policy_ref = self.cfg["nfs_policy"].get(policy_ref_name, None)
+                if policy_ref is None:
+                    raise ValueError(f"Unknown NFS policy {policy_ref_name}")
                 policies.append(
-                    NfsPoicy(**self.cfg["nfs_policy"][policy_name]))
+                    NfsPoicy(**policy_ref))
             if isinstance(policy, dict):
                 policies.append(NfsPoicy(**policy))
         return NfsExportConfig(Path(nfs_export["export"]), policies, disable=nfs_export.get("disable", False))

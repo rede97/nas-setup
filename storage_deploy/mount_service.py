@@ -4,12 +4,20 @@ import shutil
 from io import StringIO
 from pathlib import Path
 from string import Template
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from typing import Optional, Union
 from .sd_common import *
 
 logger = logging.getLogger(__name__)
 SYSTEMD_SERVICE_DIR = Path("/etc/systemd/system/")
+MOUNTS_TOML_EXAMPLE = """\
+desc = "example"
+what = "UUID=2ebdaf8a-2dee-4812-9c86-525d9b742ff2"
+where = "/opt"
+options = "nofail,rw,relatime,compress=zstd,subvol=opt"
+target = "local-fs"
+disable = true
+"""
 
 
 @dataclass
@@ -155,9 +163,23 @@ class MountService(StorageDeployService):
 
     def __init__(self, cfg: dict, config_target_dir: Path) -> None:
         super().__init__(cfg, config_target_dir)
-        self.service_target_dir = self.config_target_dir / "mount_service"
-        self.service_backup_dir = self.config_target_dir / "mount_backup"
+        self.service_target_dir = config_target_dir / "mount_service"
+        self.service_backup_dir = config_target_dir / "mount_backup"
         self.service_backup_dir.mkdir(exist_ok=True)
+
+    def toml(self, w: StringIO):
+        cfgs: list[dict] = self.cfg.get("mounts", None)
+        if cfgs is None or len(cfgs) == 0:
+            w.write(MOUNTS_TOML_EXAMPLE)
+        else:
+            for cfg in cfgs:
+                w.write(f"[[mounts]]")
+                for field in fields(MountConfig):
+                    field_content = cfg.get(field.name, None)
+                    if field_content is None:
+                        continue
+                    w.write(f"{field.name} = {field_content}")
+        return super().toml(w)
 
     def update(self):
         self.__clean_mount_service()

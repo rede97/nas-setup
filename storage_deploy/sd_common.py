@@ -1,4 +1,5 @@
 import sys
+from io import StringIO
 from pathlib import Path
 import subprocess
 
@@ -26,6 +27,9 @@ class StorageDeployService:
     def __init__(self, cfg: dict, config_target_dir: Path) -> None:
         self.cfg = cfg
         self.config_target_dir = config_target_dir.absolute()
+
+    def toml(self, w: StringIO):
+        pass
 
     def update(self):
         pass

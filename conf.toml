@@ -67,12 +67,12 @@ vfs object = recycle
 ''', "$enable_recycle"]
 
 [samba.global]
-config = '''
+policies = '''
 
 '''
 
 [samba.home]
-config = '''
+policies = '''
 comment = Home Directories
 available = yes
 browseable = no
@@ -83,7 +83,7 @@ valid users = %S
 '''
 
 [samba.share]
-config = "$share_data"
+policies = "$share_data"
 
 [webdav]
 samba = ""

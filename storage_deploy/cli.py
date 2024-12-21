@@ -6,6 +6,7 @@ from pathlib import Path
 from .sd_common import *
 from .mount_service import MountService
 from .nfs_service import NfsService
+from .samba_service import SambaService
 
 logging.basicConfig(
     level=logging.INFO,
@@ -43,11 +44,13 @@ def main():
     # mount_service.apply()
     # mount_service.remove()
 
-    nfs_service = NfsService(config, config_target_dir)
+    # nfs_service = NfsService(config, config_target_dir)
     # nfs_service.update()
     # nfs_service.apply()
+    # nfs_service.remove()
 
-    nfs_service.remove()
+    samba_service = SambaService(config, config_target_dir)
+    samba_service.update()
 
 
 # sudo python3 -m storage_deploy.cli -c conf.toml
