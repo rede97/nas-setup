@@ -38,19 +38,22 @@ def main():
 
     logger.info(f"config file: {config_path}")
 
+    w = StringIO()
     # systemctl("daemon-reload")
-    # mount_service = MountService(config, config_target_dir)
+    mount_service = MountService(config, config_target_dir)
     # mount_service.update()
     # mount_service.apply()
     # mount_service.remove()
-
-    # nfs_service = NfsService(config, config_target_dir)
+    mount_service.toml(w)
+    nfs_service = NfsService(config, config_target_dir)
     # nfs_service.update()
     # nfs_service.apply()
     # nfs_service.remove()
+    nfs_service.toml(w)
+    print(w.getvalue())
 
-    samba_service = SambaService(config, config_target_dir)
-    samba_service.update()
+    # samba_service = SambaService(config, config_target_dir)
+    # samba_service.update()
 
 
 # sudo python3 -m storage_deploy.cli -c conf.toml

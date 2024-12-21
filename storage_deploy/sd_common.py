@@ -67,11 +67,11 @@ def toml_gen_elem(inst: Any) -> str:
 def toml_gen_elem_table(w: StringIO, inst: dict | list[dict], name: Optional[str] = None):
     if isinstance(inst, dict):
         if name is not None:
-            w.write(f"[{name}]\n")
+            w.write(f"\n[{name}]\n")
         for k, v in inst.items():
             w.write(f"{k} = {toml_gen_elem(v)}\n")
     elif isinstance(inst, list):
         assert name is not None
-        w.write(f"[[{name}]]\n")
+        w.write(f"\n[[{name}]]\n")
         for e in inst:
             toml_gen_elem_table(w, e)
