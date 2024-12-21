@@ -39,10 +39,10 @@ target = "multi-user"
 
 [nfs_policy.local_lan_rw]
 access = "172.16.0.0/24"
-options = "rw,async"
+options = "rw,async,no_subtree_check"
 
 [[nfs]]
-exports = "/srv/storage"
+export = "/srv/storage"
 policies = ["$local_lan_rw"]
 
 
