@@ -39,11 +39,11 @@ class NfsService(StorageDeployService):
         nfs_export_policies = nfs_export["policies"]
         if isinstance(nfs_export_policies, str):
             nfs_export_policies = (nfs_export_policies,)
-
+        common_nfs_policies = self.cfg.get("nfs_policy", {})
         for policy in nfs_export_policies:
             if isinstance(policy, str):
                 policy_ref_name = policy.strip("$")
-                policy_ref = self.cfg["nfs_policy"].get(policy_ref_name, None)
+                policy_ref = common_nfs_policies.get(policy_ref_name, None)
                 if policy_ref is None:
                     raise ValueError(f"Unknown NFS policy {policy_ref_name}")
                 policies.append(
@@ -68,6 +68,16 @@ class NfsService(StorageDeployService):
         self.config_backup_path = config_target_dir / "nfs_backup/exports"
         self.config_target_path.parent.mkdir(exist_ok=True)
         self.config_backup_path.parent.mkdir(exist_ok=True)
+
+    def toml(self, w: StringIO):
+        default_policy = {"local": NfsPoicy(
+            "172.16.0.0/24", "rw,async,no_subtree_check").__dict__}
+        default_nfs = [{"path": "/srv/nfs", "policy": ["$local"]}]
+        toml_gen_elem_table(w, self.cfg.get(
+            "nfs_policy", default_policy), "nfs_policy")
+        toml_gen_elem_table(w, self.cfg.get(
+            "nfs", default_nfs), "nfs")
+        return super().toml(w)
 
     def update(self):
         nfs_exports_cfg: list[NfsExportConfig] = []

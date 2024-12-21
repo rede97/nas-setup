@@ -1,6 +1,7 @@
 import sys
 from io import StringIO
 from pathlib import Path
+from typing import Any, Optional
 import subprocess
 
 DEFAULT_CONFIG_PATH = Path("/etc/store_deploy/conf.toml")
@@ -42,3 +43,35 @@ class StorageDeployService:
 
     def remove(self):
         pass
+
+
+def toml_gen_elem(inst: Any) -> str:
+    if isinstance(inst, str):
+        return f'\"{inst}\"'
+    elif isinstance(inst, list):
+        content = ", ".join(map(toml_gen_elem, inst))
+        return f"[ {content} ]"
+    elif isinstance(inst, dict):
+        content = ", ".join(
+            map(lambda k: f'{k} = {toml_gen_elem(inst[k])}', inst))
+        return f"{{ {content} }}"
+    elif isinstance(inst, bool):
+        if inst:
+            return "true"
+        else:
+            return "false"
+    else:
+        return str(inst)
+
+
+def toml_gen_elem_table(w: StringIO, inst: dict | list[dict], name: Optional[str] = None):
+    if isinstance(inst, dict):
+        if name is not None:
+            w.write(f"[{name}]\n")
+        for k, v in inst.items():
+            w.write(f"{k} = {toml_gen_elem(v)}\n")
+    elif isinstance(inst, list):
+        assert name is not None
+        w.write(f"[[{name}]]\n")
+        for e in inst:
+            toml_gen_elem_table(w, e)

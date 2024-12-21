@@ -173,12 +173,12 @@ class MountService(StorageDeployService):
             w.write(MOUNTS_TOML_EXAMPLE)
         else:
             for cfg in cfgs:
-                w.write(f"[[mounts]]")
+                w.write(f"[[mounts]]\n")
                 for field in fields(MountConfig):
                     field_content = cfg.get(field.name, None)
                     if field_content is None:
                         continue
-                    w.write(f"{field.name} = {field_content}")
+                    w.write(f"{field.name} = {field_content}\n")
         return super().toml(w)
 
     def update(self):
