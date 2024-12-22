@@ -75,3 +75,32 @@ def toml_gen_elem_table(w: StringIO, inst: dict | list[dict], name: Optional[str
         w.write(f"\n[[{name}]]\n")
         for e in inst:
             toml_gen_elem_table(w, e)
+
+
+def trim_general_config(content: str, comment: set[str] = {"#"}) -> dict[str, str]:
+    config_dict = {}
+    tag = None
+    config_content = StringIO()
+    for line in content.splitlines(True):
+        if line[0] in comment:
+            continue
+        elif line.startswith("["):
+            end_idx = line.find("]", 1)
+            if end_idx == -1:
+                raise ValueError(f"invalid config content: `{line}`")
+            config_dict[tag] = config_content.getvalue()
+            tag = line[1: end_idx]
+            config_content = StringIO()
+        else:
+            if len(line.strip()) != 0:
+                config_content.write(line)
+    config_dict[tag] = config_content.getvalue()
+    return config_dict
+
+
+def trim_general_config_file(p: Path, comment: set[str] = {"#"}) -> dict[str, str]:
+    with open(p, "rt") as f:
+        return trim_general_config(f.read(), comment)
+
+
+print(trim_general_config_file(Path("/etc/samba/smb.conf")))

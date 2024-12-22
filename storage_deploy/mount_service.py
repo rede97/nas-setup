@@ -10,7 +10,8 @@ from .sd_common import *
 
 logger = logging.getLogger(__name__)
 SYSTEMD_SERVICE_DIR = Path("/etc/systemd/system/")
-MOUNTS_TOML_EXAMPLE = """\
+MOUNTS_TOML_EXAMPLE = """
+[[mounts]]
 desc = "example"
 what = "UUID=2ebdaf8a-2dee-4812-9c86-525d9b742ff2"
 where = "/opt"

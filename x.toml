@@ -1,0 +1,44 @@
+
+[[mounts]]
+what = "UUID=2ebdaf8a-2dee-4812-9c86-525d9b742ff2"
+where = "/opt"
+options = "nofail,rw,relatime,compress=zstd,subvol=opt"
+target = "local-fs"
+
+[[mounts]]
+what = "UUID=2ebdaf8a-2dee-4812-9c86-525d9b742ff2"
+where = "/srv/storage/data"
+options = "nofail,rw,relatime,compress=zstd,subvol=data"
+target = "local-fs"
+
+[[mounts]]
+what = "UUID=22b5b435-49fa-4975-9598-0d6544a4471b"
+where = "/srv/storage/nas/mxq"
+options = "rw,relatime,compress=zstd,subvol=mxq"
+target = "multi-user"
+
+[[mounts]]
+what = "UUID=77EF-B938"
+where = "/srv/storage/common"
+options = "defaults,uid=mxq,gid=users"
+target = "multi-user"
+
+[[mounts]]
+what = "UUID=B892289092285562"
+where = "/srv/storage/windata"
+options = "ro"
+target = "multi-user"
+
+[[mounts]]
+what = "UUID=69FA3F5948D911AD"
+where = "/srv/storage/winsys"
+options = "ro"
+target = "multi-user"
+
+[nfs_policy]
+local_lan_rw = { access = "172.16.0.0/24", options = "rw,async,no_subtree_check" }
+
+[[nfs]]
+export = "/srv/storage"
+policies = [ "$local_lan_rw" ]
+

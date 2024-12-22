@@ -10,6 +10,14 @@ SAMBA_CONFIG_PATH = Path("/etc/samba/smb.conf")
 SAMBA_SERVICE_NAME = "smb.service"
 
 
+RECYCLE_EXAMPLE = """\
+recycle:repository = .recycle/%U
+recycle:keeptree = yes
+recycle:versions = yes
+recycle:touch = yes
+recycle:maxsixe = 0"""
+
+
 @dataclass
 class SambaConfig:
     policy: str = ""
@@ -64,6 +72,15 @@ class SambaService(StorageDeployService):
         self.config_backup_path = config_target_dir / "samba_backup/smb.conf"
         self.config_target_path.parent.mkdir(exist_ok=True)
         self.config_backup_path.parent.mkdir(exist_ok=True)
+
+    def toml(self, w: StringIO):
+        default_policy = {"enable_recycle": "RECYCLE_EXAMPLE"}
+        default_samba = [{"path": "/srv/nfs", "policy": ["$local"]}]
+        toml_gen_elem_table(w, self.cfg.get(
+            "nfs_policy", default_policy), "nfs_policy")
+        # toml_gen_elem_table(w, self.cfg.get(
+        #     "nfs", default_nfs), "nfs")
+        return super().toml(w)
 
     def update(self):
         self.__parse_samba_policy_define_config(
