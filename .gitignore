@@ -1,2 +1,4 @@
 __pycache__/
 mount_*/
+*_config/
+*_backup/
