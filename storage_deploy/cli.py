@@ -44,16 +44,17 @@ def main():
     # mount_service.update()
     # mount_service.apply()
     # mount_service.remove()
-    mount_service.toml(w)
-    nfs_service = NfsService(config, config_target_dir)
+    # mount_service.toml(w)
+    # nfs_service = NfsService(config, config_target_dir)
     # nfs_service.update()
     # nfs_service.apply()
     # nfs_service.remove()
-    nfs_service.toml(w)
-    print(w.getvalue())
+    # nfs_service.toml(w)
 
-    # samba_service = SambaService(config, config_target_dir)
+    samba_service = SambaService(config, config_target_dir)
     # samba_service.update()
+    samba_service.toml(w)
+    print(w.getvalue())
 
 
 # sudo python3 -m storage_deploy.cli -c conf.toml

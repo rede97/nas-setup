@@ -74,12 +74,24 @@ class SambaService(StorageDeployService):
         self.config_backup_path.parent.mkdir(exist_ok=True)
 
     def toml(self, w: StringIO):
-        default_policy = {"enable_recycle": "RECYCLE_EXAMPLE"}
-        default_samba = [{"path": "/srv/nfs", "policy": ["$local"]}]
+        default_policy = {"enable_recycle": RECYCLE_EXAMPLE}
         toml_gen_elem_table(w, self.cfg.get(
-            "nfs_policy", default_policy), "nfs_policy")
-        # toml_gen_elem_table(w, self.cfg.get(
-        #     "nfs", default_nfs), "nfs")
+            "samba_policy", default_policy), "samba_policy")
+
+        samba_config = self.cfg.get(
+            "samba", {})
+        if len(samba_config) == 0:
+            default_config = trim_general_config_file(
+                SAMBA_CONFIG_PATH, comment={";", "#"})
+            for samba_name in default_config:
+                samba_config[samba_name] = {
+                    "policies": default_config[samba_name]}
+        for samba_name in samba_config:
+            if samba_name is None:
+                continue
+            toml_gen_elem_table(
+                w, samba_config[samba_name], f"samba.{samba_name}")
+
         return super().toml(w)
 
     def update(self):

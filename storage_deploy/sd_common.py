@@ -47,7 +47,10 @@ class StorageDeployService:
 
 def toml_gen_elem(inst: Any) -> str:
     if isinstance(inst, str):
-        return f'\"{inst}\"'
+        if len(inst.splitlines()) > 1 or inst.endswith("\n"):
+            return f"\'\'\'{inst}\'\'\'"
+        else:
+            return f"\'{inst}\'"
     elif isinstance(inst, list):
         content = ", ".join(map(toml_gen_elem, inst))
         return f"[ {content} ]"
@@ -82,7 +85,8 @@ def trim_general_config(content: str, comment: set[str] = {"#"}) -> dict[str, st
     tag = None
     config_content = StringIO()
     for line in content.splitlines(True):
-        if line[0] in comment:
+        line = line.strip()
+        if len(line) == 0 or line[0] in comment:
             continue
         elif line.startswith("["):
             end_idx = line.find("]", 1)
@@ -92,8 +96,9 @@ def trim_general_config(content: str, comment: set[str] = {"#"}) -> dict[str, st
             tag = line[1: end_idx]
             config_content = StringIO()
         else:
-            if len(line.strip()) != 0:
+            if len(line) != 0:
                 config_content.write(line)
+                config_content.write('\n')
     config_dict[tag] = config_content.getvalue()
     return config_dict
 
@@ -101,6 +106,3 @@ def trim_general_config(content: str, comment: set[str] = {"#"}) -> dict[str, st
 def trim_general_config_file(p: Path, comment: set[str] = {"#"}) -> dict[str, str]:
     with open(p, "rt") as f:
         return trim_general_config(f.read(), comment)
-
-
-print(trim_general_config_file(Path("/etc/samba/smb.conf")))

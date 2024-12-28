@@ -66,32 +66,15 @@ force group = users
 vfs object = recycle
 ''', "$enable_recycle"]
 
-[samba.global]
-policies = '''
-
-'''
-
-[samba.home]
-policies = '''
-comment = Home Directories
-available = yes
-browseable = no
-read only = no
-create mask = 0700
-directory mask = 0700
-valid users = %S
-'''
-
-[samba.share]
-policies = "$share_data"
-
-[webdav]
-samba = ""
-
-[udevil]
-user = ""
-blacklist = []
 
 
-[wsdd]
-disable = false
+# [webdav]
+# samba = ""
+
+# [udevil]
+# user = ""
+# blacklist = []
+
+
+# [wsdd]
+# disable = false
