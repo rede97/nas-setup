@@ -125,6 +125,10 @@ class MountConfig:
 
 class MountService(StorageDeployService):
     @staticmethod
+    def arg_flag() -> str:
+        return "mnt"
+
+    @staticmethod
     def __service_dir_rename(dir_name: str) -> str:
         return dir_name.replace(" ", "\\x20").replace("-", "\\x2d")
 
@@ -148,7 +152,9 @@ class MountService(StorageDeployService):
 
     def __link_mount_service(self):
         for mount_service in self.service_target_dir.glob("*.mount"):
-            target_service = SYSTEMD_SERVICE_DIR.joinpath(mount_service.name)
+            mount_service = mount_service.absolute()
+            target_service = SYSTEMD_SERVICE_DIR.joinpath(
+                mount_service.name).absolute()
             if target_service.exists():
                 logger.info(f"service stop and disable: {target_service}")
                 systemctl("stop", target_service.name)
@@ -156,6 +162,8 @@ class MountService(StorageDeployService):
                 logger.info(f"backup: {target_service}")
                 shutil.move(
                     target_service, self.service_backup_dir.joinpath(target_service.name))
+            elif target_service.is_symlink():
+                target_service.unlink()
             logger.info(f"link: {target_service} → {mount_service}")
             target_service.symlink_to(mount_service)
             logger.info(f"service start and enable: {target_service}")
@@ -188,7 +196,6 @@ class MountService(StorageDeployService):
             shutil.rmtree(self.service_target_dir)
         self.service_target_dir.mkdir()
         mounts_cfg = self.cfg.get("mounts", [])
-        # print(self.cfg, mounts_cfg)
         for mount_cfg in mounts_cfg:
             cfg = MountConfig(**mount_cfg)
             if cfg.disable:

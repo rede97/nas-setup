@@ -25,6 +25,9 @@ class SambaConfig:
 
 
 class SambaService(StorageDeployService):
+    @staticmethod
+    def arg_flag() -> str:
+        return "smb"
 
     def __parse_samba_policies_config(self, policies: Iterable[str]):
         policy_text = StringIO()

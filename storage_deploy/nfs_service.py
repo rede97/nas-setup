@@ -33,6 +33,9 @@ class NfsExportConfig:
 
 
 class NfsService(StorageDeployService):
+    @staticmethod
+    def arg_flag() -> str:
+        return "nfs"
 
     def __parse_nfs_config(self, nfs_export: dict[str, Any]) -> NfsExportConfig:
         policies: list[NfsPoicy] = []
