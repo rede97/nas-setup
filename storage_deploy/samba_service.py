@@ -112,39 +112,39 @@ class SambaService(StorageDeployService):
         return super().update()
 
     def apply(self, **kwargs):
-        # self.stop()
-        # if SAMBA_CONFIG_PATH.exists():
-        #     if SAMBA_CONFIG_PATH.is_symlink():
-        #         logger.info(f"unlink: {SAMBA_CONFIG_PATH}")
-        #         SAMBA_CONFIG_PATH.unlink()
-        #     else:
-        #         logger.info(f"backup: {SAMBA_CONFIG_PATH}")
-        #         shutil.move(
-        #             SAMBA_CONFIG_PATH, self.config_backup_path)
+        self.stop()
+        if SAMBA_CONFIG_PATH.exists():
+            if SAMBA_CONFIG_PATH.is_symlink():
+                logger.info(f"unlink: {SAMBA_CONFIG_PATH}")
+                SAMBA_CONFIG_PATH.unlink()
+            else:
+                logger.info(f"backup: {SAMBA_CONFIG_PATH}")
+                shutil.move(
+                    SAMBA_CONFIG_PATH, self.config_backup_path)
 
-        # logger.info(f"link: {SAMBA_CONFIG_PATH} → {self.config_target_path}")
-        # SAMBA_CONFIG_PATH.symlink_to(self.config_target_path)
-        # logger.info(f"service start and enable: {NFS_SERVICE_NAME}")
-        # systemctl("start", NFS_SERVICE_NAME)
-        # systemctl("enable", NFS_SERVICE_NAME)
+        logger.info(f"link: {SAMBA_CONFIG_PATH} → {self.config_target_path}")
+        SAMBA_CONFIG_PATH.symlink_to(self.config_target_path)
+        logger.info(f"service start and enable: {SAMBA_SERVICE_NAME}")
+        systemctl("start", SAMBA_SERVICE_NAME)
+        systemctl("enable", SAMBA_SERVICE_NAME)
         return super().apply(**kwargs)
 
     def stop(self):
-        # logger.info(f"stop: {NFS_SERVICE_NAME}")
-        # systemctl("stop", NFS_SERVICE_NAME)
+        logger.info(f"stop: {SAMBA_SERVICE_NAME}")
+        systemctl("stop", SAMBA_SERVICE_NAME)
         return super().stop()
 
     def remove(self):
-        # if SAMBA_CONFIG_PATH.is_symlink():
-        #     logger.info(f"unlink: {SAMBA_CONFIG_PATH}")
-        #     SAMBA_CONFIG_PATH.unlink()
-        # elif SAMBA_CONFIG_PATH.exists():
-        #     logger.warning(
-        #         f"recovery nfs config already exists: {SAMBA_CONFIG_PATH}")
-        #     return
+        if SAMBA_CONFIG_PATH.is_symlink():
+            logger.info(f"unlink: {SAMBA_CONFIG_PATH}")
+            SAMBA_CONFIG_PATH.unlink()
+        elif SAMBA_CONFIG_PATH.exists():
+            logger.warning(
+                f"recovery nfs config already exists: {SAMBA_CONFIG_PATH}")
+            return
 
-        # if self.config_backup_path.exists():
-        #     self.stop()
-        #     logger.info(f"recovery: {SAMBA_CONFIG_PATH}")
-        #     shutil.move(self.config_backup_path, SAMBA_CONFIG_PATH)
+        if self.config_backup_path.exists():
+            self.stop()
+            logger.info(f"recovery: {SAMBA_CONFIG_PATH}")
+            shutil.move(self.config_backup_path, SAMBA_CONFIG_PATH)
         return super().remove()
