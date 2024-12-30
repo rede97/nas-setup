@@ -1,7 +1,7 @@
 import shutil
 import logging
 from io import StringIO
-from typing import Any, Iterable
+from typing import Any
 from dataclasses import dataclass
 from .sd_common import *
 

@@ -8,6 +8,7 @@ from .mount_service import MountService
 from .nfs_service import NfsService
 from .samba_service import SambaService
 from .udevil_services import UdevilService
+from .wsdd_services import WsddService
 
 logging.basicConfig(
     level=logging.INFO,
@@ -21,6 +22,7 @@ ServicesType: list[type[StorageDeployService]] = [
     NfsService,
     SambaService,
     UdevilService,
+    WsddService,
 ]
 Services: dict[str, type[StorageDeployService]] = {
     t.arg_flag(): t for t in ServicesType

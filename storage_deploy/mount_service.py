@@ -3,7 +3,6 @@ import subprocess
 import shutil
 from io import StringIO
 from pathlib import Path
-from string import Template
 from dataclasses import dataclass, fields
 from typing import Optional, Union
 from .sd_common import *
