@@ -143,7 +143,7 @@ class SambaService(StorageDeployService):
             SAMBA_CONFIG_PATH.unlink()
         elif SAMBA_CONFIG_PATH.exists():
             logger.warning(
-                f"recovery nfs config already exists: {SAMBA_CONFIG_PATH}")
+                f"recovery samba config already exists: {SAMBA_CONFIG_PATH}")
             return
 
         if self.config_backup_path.exists():

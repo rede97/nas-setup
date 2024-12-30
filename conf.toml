@@ -1,0 +1,160 @@
+
+[[mounts]]
+what = 'UUID=2ebdaf8a-2dee-4812-9c86-525d9b742ff2'
+where = '/opt'
+options = 'nofail,rw,relatime,compress=zstd,subvol=opt'
+target = 'local-fs'
+
+[[mounts]]
+what = 'UUID=2ebdaf8a-2dee-4812-9c86-525d9b742ff2'
+where = '/srv/storage/data'
+options = 'nofail,rw,relatime,compress=zstd,subvol=data'
+target = 'local-fs'
+
+[[mounts]]
+what = 'UUID=22b5b435-49fa-4975-9598-0d6544a4471b'
+where = '/srv/storage/nas/mxq'
+options = 'rw,relatime,compress=zstd,subvol=mxq'
+target = 'multi-user'
+
+[[mounts]]
+what = 'UUID=77EF-B938'
+where = '/srv/storage/common'
+options = 'defaults,uid=mxq,gid=users'
+target = 'multi-user'
+
+[[mounts]]
+what = 'UUID=B892289092285562'
+where = '/srv/storage/windata'
+options = 'ro'
+target = 'multi-user'
+
+[[mounts]]
+what = 'UUID=69FA3F5948D911AD'
+where = '/srv/storage/winsys'
+options = 'ro'
+target = 'multi-user'
+
+[nfs_policy]
+local_lan_rw = { access = '172.16.0.0/24', options = 'rw,async,no_subtree_check' }
+
+[[nfs]]
+export = '/srv/storage'
+policies = [ '$local_lan_rw' ]
+
+[samba_policy]
+allow_users = '''valid users = @users
+'''
+enable_recycle = '''vfs object = recycle
+recycle:repository = .recycle/%U
+recycle:keeptree = yes
+recycle:versions = yes
+recycle:touch = yes
+recycle:maxsixe = 0
+'''
+share_data = [ '$allow_users', '''read only = no
+inherit owner = no
+force group = users
+''', '$enable_recycle' ]
+win_data = [ '$allow_users', '''read only = yes
+''' ]
+
+[samba.global]
+policies = '''workgroup = WORKGROUP
+log file = /var/log/samba/log.%m
+max log size = 1000
+logging = file
+panic action = /usr/share/samba/panic-action %d
+server role = standalone server
+obey pam restrictions = yes
+unix password sync = yes
+passwd program = /usr/bin/passwd %u
+passwd chat = *Enter\snew\s*\spassword:* %n\n *Retype\snew\s*\spassword:* %n\n *password\supdated\ssuccessfully* .
+pam password change = yes
+map to guest = Never
+usershare allow guests = no
+'''
+
+[samba.homes]
+policies = [ '''comment = Home Directories
+available = yes
+browseable = no
+read only = yes
+create mask = 0700
+directory mask = 0700
+valid users = %S
+''', '$enable_recycle' ]
+
+[samba.nas]
+policies = [ '''comment = Nas Directories
+path = /srv/storage/nas/%U
+''', '$share_data' ]
+
+[samba.media]
+policies = [ '''comment = Media Directories
+path = /media/%U
+''', '$share_data' ]
+
+[samba.share]
+policies = [ '''comment = Data Directories
+path = /srv/storage/data/share
+''', '$share_data' ]
+
+[samba.common]
+policies = [ '''comment = Common Data Directories
+path = /srv/storage/common
+''', '$share_data' ]
+
+[samba.windata]
+policies = [ '''comment = Windows Data Directories
+path = /srv/storage/windata
+''', '$win_data' ]
+
+[samba.winsys]
+policies = [ '''comment = Windows System Directories
+path = /srv/storage/winsys
+''', '$win_data' ]
+
+[udevil]
+user = 'mxq'
+config = '''log_keep_days = 10
+allowed_types = exfat, ntfs
+allowed_users = *
+allowed_groups = *
+allowed_media_dirs = /media/$USER, /run/media/$USER
+allowed_devices = /dev/*
+forbidden_devices =
+allowed_networks = *
+forbidden_networks =
+allowed_files = *
+forbidden_files =
+default_options           = nosuid, nodev, noatime
+default_options_file      = nosuid, nodev, noatime, uid=$UID, gid=$GID, ro
+default_options_iso9660   = nosuid, nodev, noatime, uid=$UID, gid=$GID, ro, utf8
+default_options_udf       = nosuid, nodev, noatime, uid=$UID, gid=$GID
+default_options_vfat      = nosuid, nodev, noatime, uid=$UID, gid=$GID, utf8
+default_options_exfat     = nosuid, nodev, noatime, uid=$UID, gid=$GID, iocharset=utf8, namecase=0
+default_options_msdos     = nosuid, nodev, noatime, uid=$UID, gid=$GID
+default_options_umsdos    = nosuid, nodev, noatime, uid=$UID, gid=$GID
+default_options_ntfs      = nosuid, nodev, noatime, uid=$UID, gid=$GID, utf8
+default_options_cifs      = nosuid, nodev, uid=$UID, gid=$GID
+default_options_smbfs     = nosuid, nodev, uid=$UID, gid=$GID
+default_options_sshfs     = nosuid, nodev, noatime, uid=$UID, gid=$GID, nonempty, allow_other
+default_options_curlftpfs = nosuid, nodev, noatime, uid=$UID, gid=$GID, nonempty, allow_other
+default_options_ftpfs     = nosuid, nodev, noatime, uid=$UID, gid=$GID
+default_options_davfs     = nosuid, nodev, uid=$UID, gid=$GID
+default_options_tmpfs     = nosuid, nodev, noatime, uid=$UID, gid=$GID
+default_options_ramfs     = nosuid, nodev, noatime, uid=$UID, gid=$GID
+allowed_options           = nosuid, noexec, nodev, noatime, fmask=0133, dmask=0022, uid=$UID, gid=$GID, ro, rw, sync, flush, iocharset=*, utf8, remount
+allowed_options_nfs       = nosuid, noexec, nodev, noatime, ro, rw, sync, remount, port=*, rsize=*, wsize=*, hard, proto=*, timeo=*, retrans=*
+allowed_options_cifs      = nosuid, noexec, nodev, ro, rw, remount, port=*, user=*, username=*, pass=*, password=*, guest, domain=*, uid=$UID, gid=$GID, credentials=*
+allowed_options_smbfs     = nosuid, noexec, nodev, ro, rw, remount, port=*, user=*, username=*, pass=*, password=*, guest, domain=*, uid=$UID, gid=$GID, credentials=*
+allowed_options_sshfs     = nosuid, noexec, nodev, noatime, ro, rw, uid=$UID, gid=$GID, nonempty, allow_other, idmap=user, BatchMode=yes, port=*
+allowed_options_curlftpfs = nosuid, noexec, nodev, noatime, ro, rw, uid=$UID, gid=$GID, nonempty, allow_other, user=*
+allowed_options_ftpfs     = nosuid, noexec, nodev, noatime, ro, rw, port=*, user=*, pass=*, root=*, uid=$UID, gid=$GID
+allowed_options_exfat     = nosuid, noexec, nodev, noatime, fmask=0133, dmask=0022, uid=$UID, gid=$GID, umask=0077, namecase=*, ro, rw, sync, flush, iocharset=*, remount
+mount_point_mode = 0755
+mount_point_mode_sshfs =
+mount_point_mode_curlftpfs =
+mount_point_mode_ftpfs =
+'''

@@ -3,39 +3,53 @@ import argparse
 import tomllib
 import logging
 from pathlib import Path
-from colorama import init, Fore
 from .sd_common import *
 from .mount_service import MountService
 from .nfs_service import NfsService
 from .samba_service import SambaService
-
+from .udevil_services import UdevilService
 
 logging.basicConfig(
     level=logging.INFO,
-    format='[%(filename)s:%(lineno)d] %(levelname)s - %(message)s',
-    stream=sys.stderr
+    format="[%(filename)s:%(lineno)d] %(levelname)s - %(message)s",
+    stream=sys.stderr,
 )
 logger = logging.getLogger(__name__)
 
 ServicesType: list[type[StorageDeployService]] = [
-    MountService, NfsService, SambaService]
+    MountService,
+    NfsService,
+    SambaService,
+    UdevilService,
+]
 Services: dict[str, type[StorageDeployService]] = {
-    t.arg_flag(): t for t in ServicesType}
+    t.arg_flag(): t for t in ServicesType
+}
 
 
 def init_parser() -> Any:
     parser = argparse.ArgumentParser(
-        description="Storage deployment cli tools", add_help=True)
+        description="Storage deployment cli tools", add_help=True
+    )
 
-    parser.add_argument("action", type=str, choices=[
-                        "init", "apply", "stop", "remove"], default=None)
-    parser.add_argument(f"--all", action='store_true', help="all-services")
+    parser.add_argument(
+        "action", type=str, choices=["init", "apply", "stop", "remove"], default=None
+    )
+    parser.add_argument(f"--all", action="store_true", help="all-services")
     for service_type in ServicesType:
-        parser.add_argument(f"--{service_type.arg_flag()}",
-                            action='store_true', help=service_type.__name__)
+        parser.add_argument(
+            f"--{service_type.arg_flag()}",
+            action="store_true",
+            help=service_type.__name__,
+        )
 
-    parser.add_argument('-c', "--config", type=Path,
-                        help=f"config file path, defaults to {DEFAULT_CONFIG_PATH}", default=None)
+    parser.add_argument(
+        "-c",
+        "--config",
+        type=Path,
+        help=f"config file path, defaults to {DEFAULT_CONFIG_PATH}",
+        default=None,
+    )
 
     args = parser.parse_args()
     return args
@@ -47,10 +61,10 @@ def main():
 
     if config_path is None:
         config_path = DEFAULT_CONFIG_PATH
-        if not config_path.exists():
-            logger.info(f"init: {config_path}")
-            config_path.parent.mkdir(parents=True, exist_ok=True)
-            config_path.touch()
+    if not config_path.exists():
+        logger.info(f"init: {config_path}")
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        config_path.touch()
 
     config_target_dir = config_path.parent
     with open(config_path, "rb") as f:
@@ -80,9 +94,7 @@ def main():
                     case "remove":
                         service.remove()
 
-    # print(w.getvalue())
-
 
 # sudo python3 -m storage_deploy.cli -c conf.toml
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

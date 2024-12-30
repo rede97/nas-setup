@@ -85,7 +85,7 @@ def toml_gen_elem_table(w: StringIO, inst: dict | list[dict], name: Optional[str
             toml_gen_elem_table(w, e)
 
 
-def trim_general_config(content: str, comment: set[str] = {"#"}) -> dict[str, str]:
+def trim_general_config(content: str, comment: set[str] = {"#"}) -> dict[str | None, str]:
     config_dict = {}
     tag = None
     config_content = StringIO()
@@ -108,6 +108,6 @@ def trim_general_config(content: str, comment: set[str] = {"#"}) -> dict[str, st
     return config_dict
 
 
-def trim_general_config_file(p: Path, comment: set[str] = {"#"}) -> dict[str, str]:
+def trim_general_config_file(p: Path, comment: set[str] = {"#"}) -> dict[str | None, str]:
     with open(p, "rt") as f:
         return trim_general_config(f.read(), comment)
