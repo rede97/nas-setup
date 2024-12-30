@@ -36,8 +36,7 @@ class SambaService(StorageDeployService):
                 policy_ref_name = sub_policy.strip("$")
                 policy_ref = self.samba_policies.get(policy_ref_name, None)
                 if policy_ref is None:
-                    raise ValueError(
-                        f"Unknown samba policy name: ${policy_ref_name}")
+                    raise ValueError(f"Unknown samba policy name: ${policy_ref_name}")
                 policy_text.write(policy_ref)
             else:
                 policy_text.write(sub_policy)
@@ -49,13 +48,17 @@ class SambaService(StorageDeployService):
             if isinstance(policies, str):
                 policies = (policies,)
             self.samba_policies[policy_name] = self.__parse_samba_policies_config(
-                policies)
+                policies
+            )
 
     def __parse_samba_config(self, samba_cfg: dict[str, Any]) -> SambaConfig:
         policies = samba_cfg.get("policies", [])
         if isinstance(policies, str):
             policies = (policies,)
-        return SambaConfig(self.__parse_samba_policies_config(policies), samba_cfg.get("disable", False))
+        return SambaConfig(
+            self.__parse_samba_policies_config(policies),
+            samba_cfg.get("disable", False),
+        )
 
     @staticmethod
     def __gen_samba_config(samba_configs: dict[str, SambaConfig]) -> str:
@@ -78,34 +81,31 @@ class SambaService(StorageDeployService):
 
     def toml(self, w: StringIO):
         default_policy = {"enable_recycle": RECYCLE_EXAMPLE}
-        toml_gen_elem_table(w, self.cfg.get(
-            "samba_policy", default_policy), "samba_policy")
+        toml_gen_elem_table(
+            w, self.cfg.get("samba_policy", default_policy), "samba_policy"
+        )
 
-        samba_config = self.cfg.get(
-            "samba", {})
+        samba_config = self.cfg.get("samba", {})
         if len(samba_config) == 0:
             default_config = trim_general_config_file(
-                SAMBA_CONFIG_PATH, comment={";", "#"})
+                SAMBA_CONFIG_PATH, comment={";", "#"}
+            )
             for samba_name in default_config:
-                samba_config[samba_name] = {
-                    "policies": default_config[samba_name]}
+                samba_config[samba_name] = {"policies": default_config[samba_name]}
         for samba_name in samba_config:
             if samba_name is None:
                 continue
-            toml_gen_elem_table(
-                w, samba_config[samba_name], f"samba.{samba_name}")
+            toml_gen_elem_table(w, samba_config[samba_name], f"samba.{samba_name}")
 
         return super().toml(w)
 
     def update(self):
-        self.__parse_samba_policy_define_config(
-            self.cfg.get("samba_policy", {}))
+        self.__parse_samba_policy_define_config(self.cfg.get("samba_policy", {}))
         samba_configs: dict[str, Any] = self.cfg.get("samba", {})
         configs: dict[str, SambaConfig] = {}
 
         for samba_config_name, samba_config in samba_configs.items():
-            configs[samba_config_name] = self.__parse_samba_config(
-                samba_config)
+            configs[samba_config_name] = self.__parse_samba_config(samba_config)
 
         config = SambaService.__gen_samba_config(configs)
         with open(self.config_target_path, mode="wt") as f:
@@ -122,8 +122,7 @@ class SambaService(StorageDeployService):
                 SAMBA_CONFIG_PATH.unlink()
             else:
                 logger.info(f"backup: {SAMBA_CONFIG_PATH}")
-                shutil.move(
-                    SAMBA_CONFIG_PATH, self.config_backup_path)
+                shutil.move(SAMBA_CONFIG_PATH, self.config_backup_path)
 
         logger.info(f"link: {SAMBA_CONFIG_PATH} → {self.config_target_path}")
         SAMBA_CONFIG_PATH.symlink_to(self.config_target_path)
@@ -142,8 +141,7 @@ class SambaService(StorageDeployService):
             logger.info(f"unlink: {SAMBA_CONFIG_PATH}")
             SAMBA_CONFIG_PATH.unlink()
         elif SAMBA_CONFIG_PATH.exists():
-            logger.warning(
-                f"recovery samba config already exists: {SAMBA_CONFIG_PATH}")
+            logger.warning(f"recovery samba config already exists: {SAMBA_CONFIG_PATH}")
             return
 
         if self.config_backup_path.exists():

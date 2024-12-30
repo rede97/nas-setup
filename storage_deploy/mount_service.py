@@ -42,7 +42,10 @@ class MountConfig:
     @staticmethod
     def __lookup_fstype_by_dev(dev: Path) -> Optional[str]:
         output = subprocess.run(
-            f"blkid -s TYPE --output value {dev.absolute()}", shell=True, stdout=subprocess.PIPE).stdout
+            f"blkid -s TYPE --output value {dev.absolute()}",
+            shell=True,
+            stdout=subprocess.PIPE,
+        ).stdout
         fstype_str = output.decode(encoding="utf-8").strip()
         if len(fstype_str) != 0:
             return fstype_str
@@ -63,7 +66,8 @@ class MountConfig:
             return fstype
         else:
             return FileExistsError(
-                "Invalid `what` field to get fstype automatic, only local device is supported")
+                "Invalid `what` field to get fstype automatic, only local device is supported"
+            )
 
     def get_type(self) -> str:
         fs_type = self.__get_type()
@@ -74,8 +78,7 @@ class MountConfig:
                 raise fs_type
             case "" | "auto":
                 if isinstance(fs_type, Exception):
-                    logger.warning(
-                        f"fstype maybe mismatch. {fs_type}")
+                    logger.warning(f"fstype maybe mismatch. {fs_type}")
                 return "auto"
             case _:
                 if self.type != fs_type and isinstance(fs_type, ValueError):
@@ -140,8 +143,7 @@ class MountService(StorageDeployService):
                         logger.info(f"service stop: {mount_service}")
                         systemctl("stop", mount_service.name)
                     else:
-                        logger.info(
-                            f"service stop and disable: {mount_service}")
+                        logger.info(f"service stop and disable: {mount_service}")
                         systemctl("stop", mount_service.name)
                         systemctl("disable", mount_service.name)
                         logger.info(f"unlink: {mount_service_path}")
@@ -152,15 +154,16 @@ class MountService(StorageDeployService):
     def __link_mount_service(self):
         for mount_service in self.service_target_dir.glob("*.mount"):
             mount_service = mount_service.absolute()
-            target_service = SYSTEMD_SERVICE_DIR.joinpath(
-                mount_service.name).absolute()
+            target_service = SYSTEMD_SERVICE_DIR.joinpath(mount_service.name).absolute()
             if target_service.exists():
                 logger.info(f"service stop and disable: {target_service}")
                 systemctl("stop", target_service.name)
                 systemctl("disable", target_service.name)
                 logger.info(f"backup: {target_service}")
                 shutil.move(
-                    target_service, self.service_backup_dir.joinpath(target_service.name))
+                    target_service,
+                    self.service_backup_dir.joinpath(target_service.name),
+                )
             elif target_service.is_symlink():
                 target_service.unlink()
             logger.info(f"link: {target_service} → {mount_service}")
@@ -186,7 +189,7 @@ class MountService(StorageDeployService):
                     field_content = cfg.get(field.name, None)
                     if field_content is None:
                         continue
-                    w.write(f'{field.name} = {toml_gen_elem(field_content)}\n')
+                    w.write(f"{field.name} = {toml_gen_elem(field_content)}\n")
         return super().toml(w)
 
     def update(self):
@@ -200,8 +203,7 @@ class MountService(StorageDeployService):
             if cfg.disable:
                 continue
             where_parents = Path(cfg.where).absolute().parts[1:]
-            where_parents = list(
-                map(MountService.__service_dir_rename, where_parents))
+            where_parents = list(map(MountService.__service_dir_rename, where_parents))
             service_name = "-".join(where_parents) + ".mount"
             mount_service_path = self.service_target_dir / service_name
             with open(mount_service_path, mode="wt") as f:
@@ -221,8 +223,7 @@ class MountService(StorageDeployService):
         for backup_service in self.service_backup_dir.glob("*.mount"):
             target_service = SYSTEMD_SERVICE_DIR.joinpath(backup_service.name)
             if target_service.exists():
-                logger.warning(
-                    f"recovery service already exists: {target_service}")
+                logger.warning(f"recovery service already exists: {target_service}")
             else:
                 logger.info(f"recovery: {target_service}")
                 shutil.move(backup_service, target_service)

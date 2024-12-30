@@ -49,11 +49,14 @@ class NfsService(StorageDeployService):
                 policy_ref = common_nfs_policies.get(policy_ref_name, None)
                 if policy_ref is None:
                     raise ValueError(f"Unknown NFS policy {policy_ref_name}")
-                policies.append(
-                    NfsPoicy(**policy_ref))
+                policies.append(NfsPoicy(**policy_ref))
             if isinstance(policy, dict):
                 policies.append(NfsPoicy(**policy))
-        return NfsExportConfig(Path(nfs_export["export"]), policies, disable=nfs_export.get("disable", False))
+        return NfsExportConfig(
+            Path(nfs_export["export"]),
+            policies,
+            disable=nfs_export.get("disable", False),
+        )
 
     @staticmethod
     def __gen_nfs_config(nfs_exports_cfg: list[NfsExportConfig]) -> str:
@@ -73,13 +76,12 @@ class NfsService(StorageDeployService):
         self.config_backup_path.parent.mkdir(exist_ok=True)
 
     def toml(self, w: StringIO):
-        default_policy = {"local": NfsPoicy(
-            "172.16.0.0/24", "rw,async,no_subtree_check").__dict__}
+        default_policy = {
+            "local": NfsPoicy("172.16.0.0/24", "rw,async,no_subtree_check").__dict__
+        }
         default_nfs = [{"path": "/srv/nfs", "policy": ["$local"]}]
-        toml_gen_elem_table(w, self.cfg.get(
-            "nfs_policy", default_policy), "nfs_policy")
-        toml_gen_elem_table(w, self.cfg.get(
-            "nfs", default_nfs), "nfs")
+        toml_gen_elem_table(w, self.cfg.get("nfs_policy", default_policy), "nfs_policy")
+        toml_gen_elem_table(w, self.cfg.get("nfs", default_nfs), "nfs")
         return super().toml(w)
 
     def update(self):
@@ -101,8 +103,7 @@ class NfsService(StorageDeployService):
                 NFS_CONFIG_PATH.unlink()
             else:
                 logger.info(f"backup: {NFS_CONFIG_PATH}")
-                shutil.move(
-                    NFS_CONFIG_PATH, self.config_backup_path)
+                shutil.move(NFS_CONFIG_PATH, self.config_backup_path)
 
         logger.info(f"link: {NFS_CONFIG_PATH} → {self.config_target_path}")
         NFS_CONFIG_PATH.symlink_to(self.config_target_path)
@@ -121,8 +122,7 @@ class NfsService(StorageDeployService):
             logger.info(f"unlink: {NFS_CONFIG_PATH}")
             NFS_CONFIG_PATH.unlink()
         elif NFS_CONFIG_PATH.exists():
-            logger.warning(
-                f"recovery nfs config already exists: {NFS_CONFIG_PATH}")
+            logger.warning(f"recovery nfs config already exists: {NFS_CONFIG_PATH}")
             return
 
         if self.config_backup_path.exists():
