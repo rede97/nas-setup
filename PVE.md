@@ -96,6 +96,24 @@ ExecStart=/usr/bin/rathole /etc/config.toml
 WantedBy=multi-user.target
 ```
 
+如果是openwrt实用init.d启动rathole服务
+```sh
+#!/bin/sh /etc/rc.common
+START=99
+start(){
+        echo "rathole is start"
+        /root/rathole /root/client.toml &
+}
+ 
+stop(){
+        echo "rathole is stop"
+}
+
+restart(){
+        echo "rathole is restart"
+}
+```
+
 ## Filesystem
 
 文件系统维护的基本命令
