@@ -96,6 +96,10 @@ ExecStart=/usr/bin/rathole /etc/config.toml
 WantedBy=multi-user.target
 ```
 
+```sh
+ln -s /etc/init.d/rathole /etc/rc.d/
+```
+
 如果是openwrt实用init.d启动rathole服务
 ```sh
 #!/bin/sh /etc/rc.common
