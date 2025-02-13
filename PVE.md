@@ -101,18 +101,14 @@ WantedBy=multi-user.target
 ```sh
 #!/bin/sh /etc/rc.common
 START=99
-start(){
-        echo "rathole is start"
-        /root/rathole /root/client.toml &
-}
- 
-stop(){
-        echo "rathole is stop"
+USE_PROCD=1
+
+start_service() {
+    procd_open_instance
+    procd_set_param command /usr/bin/rathole /etc/client.toml
+    procd_close_instance
 }
 
-restart(){
-        echo "rathole is restart"
-}
 ```
 ```sh
 ln -s /etc/init.d/rathole /etc/rc.d/
